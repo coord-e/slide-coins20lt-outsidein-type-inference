@@ -16,8 +16,18 @@ jobs:
           node-version: "14"
       - name: Install Noto fonts
         run: sudo apt-get install fonts-noto-cjk fonts-noto-mono
+      - name: Install Overpass fonts
+        run: |
+          wget https://github.com/RedHatOfficial/Overpass/releases/download/3.0.2/overpass-desktop-fonts.zip -O overpass.zip
+          unzip overpass.zip
+          sudo mkdir -p /usr/share/fonts/opentype
+          sudo cp overpass/* /usr/share/fonts/opentype/
+          sudo cp overpass-mono/* /usr/share/fonts/opentype/
+          sudo fc-cache -f
       - run: npm install
       - run: npm run build
+      - name: Add font links to output HTML
+        run: sed -e 's/<html lang="en-US"><head>/<html lang="ja"><head><link rel="preconnect" href="https:\/\/fonts.gstatic.com"><link href="https:\/\/fonts.googleapis.com\/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https:\/\/overpass-30e2.kxcdn.com\/overpass-mono.css">/' -i dist/index.html
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
