@@ -174,12 +174,13 @@ eval :: Expr t -> t
 
 ---
 
+<!-- _footer: 一般的に Generalized algebraic datatype と呼ばれる機能 -->
+
 # Under the hood (1/1)
 
 拡張機能: `GADTs`
 
-- Generalized algebraic datatype と呼ばれる機能
-- 型パラメータを値の構造によって制限できる
+- データ型の型パラメータを値の構造によって限定できる
 
 ```haskell
 data Vec n where
@@ -199,16 +200,17 @@ VS 1 (VS 2 (VS 3 VZ)) :: Vec (S (S (S Z)))
 
 ---
 
+<!-- _footer: 一般的に Type family と呼ばれる機能で、それは Associated type と呼ばれる機能に似ています -->
+
 # Under the hood (2/2)
 
 拡張機能: `TypeFamilies`
 
-- Type family と呼ばれる機能
 - 型の上の関数; 型を受け取って型を返す
 
 ```haskell
 type family Add n m where
-  Add Z m = m                 -- (1)
+  Add Z     m = m             -- (1)
   Add (S n) m = S (Add n m)   -- (2)
 ```
 
@@ -229,14 +231,16 @@ Add (S Z) m
 
 ---
 
+<!-- _footer: 昔は UHC とか LHC とかあったらしい -->
+
 # 拡張機能？
 
 - Haskell は**プログラミング言語**
   - 仕様が策定されている: Haskell 98, Haskell 2010
 - GHC (Glasgow Haskell Compiler) は Haskell の**処理系** （コンパイラ）
   - Haskell の仕様に沿って実装されている
-- Haskell の仕様を超えて、GHC が独自に実装している拡張機能
-- `TypeFamilies` `GADTs` はこれです
+- **GHC 拡張**は、Haskell の仕様を超えて GHC が独自に実装している拡張機能
+  - `TypeFamilies` `GADTs` はこれです
 - 今は GHC 以外に生きた処理系がないから GHC 拡張を使うのが当たり前
   - 😇
 
@@ -464,7 +468,7 @@ Add (S Z) m
 
 # 実装
 
-- [`https://github.com/coord-e/impl-outsidein`](https://github.com/coord-e/impl-outsidein)
+[`https://github.com/coord-e/impl-outsidein`](https://github.com/coord-e/impl-outsidein)
 
 | Files | Lines | Code | Comments | Blanks |
 | ----- | ----- | ---- | -------- | ------ |
@@ -560,4 +564,5 @@ let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
 - 意外と容易に実現できて → うれしい！
 - 参考論文に怪しい部分があるのでもっとよくできそう！
 
-スライドの PDF: [`https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf`](https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf)
+スライドの PDF 👇
+[`https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf`](https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf)
