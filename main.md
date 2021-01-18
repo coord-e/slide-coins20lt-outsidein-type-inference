@@ -13,9 +13,18 @@ paginate: true
 
 ---
 
+# 目的
+
+定理証明などの幅広い応用がある Haskell 言語拡張を追実装することで理解を深める
+
+---
+
 <!-- _class: lead -->
+<!-- _footer: Haskell というか GHC だが -->
 
 # 導入: すごい Haskell
+
+もしくは実装した Haskell 言語拡張の説明
 
 ---
 
@@ -114,7 +123,7 @@ case proof of
 # 半自動定理証明
 
 - 定理証明: Curry-Howard 同型対応
-- 半自動: 型推論によって推移律、対称律、反射律などは自動で推論
+- 半自動: 型推論によって推移律や対称律などによる書き換えは自動で推論
   - ↓ のように必要な定理と帰納法の仮定を並べてやれば証明できちゃったり
     <!-- - index を項レベルで扱うための singleton type: GADTs -->
     <!-- - 同値性を反映する identity type: GADTs -->
@@ -140,6 +149,8 @@ case plusComm (len v1) (len v2) of
 ```
 
 ---
+
+<!-- _footer: Haskell のライブラリとして effect system を実装した Extensible effects にも `GADTs` が応用されています -->
 
 # ほかにも魅力的な応用が…
 
@@ -167,6 +178,7 @@ eval :: Expr t -> t
 ---
 
 <!-- _class: lead -->
+<!-- _footer: すごいね -->
 
 # すごい
 
@@ -240,7 +252,7 @@ Add (S Z) m
 - GHC (Glasgow Haskell Compiler) は Haskell の**処理系** （コンパイラ）
   - Haskell の仕様に沿って実装されている
 - **GHC 拡張**は、Haskell の仕様を超えて GHC が独自に実装している拡張機能
-  - `TypeFamilies` `GADTs` はこれです
+  - `GADTs` `TypeFamilies` はこれです
 - 今は GHC 以外に生きた処理系がないから GHC 拡張を使うのが当たり前
   - 😇
 
@@ -504,7 +516,6 @@ let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
             } ▹ sym (Eq <S <Add 'a257 m>> 'c268)
         } ▹ sym (Eq (<Add 'c258 <m>> ∘ $a0 @'a257 @m) <<Add m (S 'a257)>>) ∘ sym (Eq <<Add n m>> <Add <m> 'c258>)
     }
-
 ```
 
 <!-- --- -->
@@ -540,7 +551,9 @@ let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
   - $\texttt{T}\ (\texttt{F}\ \texttt{a}) \sim \textit{tv}$
   - 入れ替えるルールがあるはずが、条件の定義ミス？で引っかからない
     - 実装では修正した
-  - strong normalization がない
+  - 制約の意味がはっきりしてないので出力が適切な解なのかわかっていない
+    - 😱
+    - ソルバが常に適切な解を返すかどうか論じることもできない
 
 ---
 
@@ -549,7 +562,7 @@ let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
 **Constraint Handling Rules** (CHR) での制約解消
 
 - OutsideIn(X) の制約ソルバは怪しいところがある
-- 制約を CHR に変換し、confluence や strong normalization をはっきりさせたい
+- 制約を CHR に変換し、confluence や制約の意味をはっきりさせたい
 - 拡張が容易な型クラス制約にも興味がある
 - CHR + evidence 生成はまだ成されていないみたい
   - > The issue of evidence generation has not been fully addressed for CHR yet.
