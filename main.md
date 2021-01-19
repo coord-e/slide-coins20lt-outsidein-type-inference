@@ -578,4 +578,4 @@ let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
 - 参考論文に怪しい部分があるのでもっとよくできそう！
 
 スライドの PDF 👇
-[`https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf`](https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf)
+[`https://coord-e.github.io/slide-coins20lt-outsidein-type-inference/slide.pdf`](https://coord-e.github.io/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/slide.pdf)

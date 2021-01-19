@@ -1,5 +1,5 @@
 {
-  "name": "slide-specialseminar20-reimpl-type-infer-in-haskell-exts",
+  "name": "slide-coins20lt-outsidein-type-inference",
   "version": "1.0.0",
   "description": "Haskell 言語拡張における型推論の追実装",
   "main": "index.js",
@@ -17,14 +17,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/coord-e/slide-specialseminar20-reimpl-type-infer-in-haskell-exts.git"
+    "url": "git+https://github.com/coord-e/slide-coins20lt-outsidein-type-inference.git"
   },
   "author": "coord_e",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/coord-e/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/issues"
+    "url": "https://github.com/coord-e/slide-coins20lt-outsidein-type-inference/issues"
   },
-  "homepage": "https://github.com/coord-e/slide-specialseminar20-reimpl-type-infer-in-haskell-exts#readme",
+  "homepage": "https://github.com/coord-e/slide-coins20lt-outsidein-type-inference#readme",
   "dependencies": {
     "@marp-team/marp-cli": "^0.23.0",
     "@textlint-ja/textlint-rule-no-dropping-i": "^1.0.0",
