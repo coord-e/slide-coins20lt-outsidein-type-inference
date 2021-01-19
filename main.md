@@ -8,14 +8,75 @@ paginate: true
 
 # Haskell 言語拡張における型推論の追実装
 
-2020 年度 情報特別演習最終発表会
-小川 広水
-
 ---
 
 # 目的
 
 定理証明などの幅広い応用がある Haskell 言語拡張を追実装することで理解を深める
+
+---
+
+# Haskell とは？
+
+- > An advanced, purely functional programming language
+- https://www.haskell.org/
+
+```haskell
+sort :: forall a. Ord a => [a] -> [a]
+sort [] = []
+sort (x:xs) = sort smaller ++ [x] ++ sort bigger
+  where
+    smaller = filter (< x) xs
+    bigger = filter (>= x) xs
+```
+
+---
+
+# 型の読み方
+
+```haskell
+-- 関数名 :: 型変数の導入. 型制約 => 引数  -> 戻り値
+   sort  :: forall a  . Ord a => [a]  -> [a]
+```
+
+- 変数は引数のない関数
+  ```haskell
+  one :: Int
+  ```
+- 大文字で始まるのは型コンストラクタ
+  - 定義された型
+  - 並べて書くとジェネリクスみたいなものの適用: `T a`
+    - 型でパラーメタ化された型
+  ```haskell
+  map :: forall a b. (a -> b) -> Maybe a -> Maybe b
+  ```
+
+---
+
+# 読み方
+
+- `case` や定義を並べてパターンマッチ
+
+```haskell
+-- １つ目の引数（`[a]` 型）が `[]` だったら e1
+sort [] = e1
+-- １つ目の引数（`[a]` 型）が `x : xs` だったら e2
+sort (x:xs) = e2
+```
+
+```haskell
+-- 上と同じ意味
+sort xs = case xs of
+  [] -> e1
+  (x : xs) -> e2
+```
+
+- 並べると関数適用
+
+```haskell
+-- `sort` 関数に `bigger` 変数を渡す
+sort bigger
+```
 
 ---
 
@@ -256,72 +317,6 @@ Add (S Z) m
 - 今は GHC 以外に生きた処理系がないから GHC 拡張を使うのが当たり前
   - 😇
 
-<!-- ---                                                                                                                            -->
-
-<!-- # Haskell とは？                                                                                                           -->
-
-<!-- - > An advanced, purely functional programming language                                                                        -->
-<!-- - https://www.haskell.org/                                                                                                     -->
-
-<!-- ```haskell                                                                                                                     -->
-<!-- sort :: forall a. Ord a => [a] -> [a]                                                                                          -->
-<!-- sort [] = []                                                                                                                   -->
-<!-- sort (x:xs) = sort smaller ++ [x] ++ sort bigger                                                                               -->
-<!--   where                                                                                                                        -->
-<!--     smaller = filter (< x) xs                                                                                                  -->
-<!--     bigger = filter (>= x) xs                                                                                                  -->
-<!-- ```                                                                                                                            -->
-
-<!-- ---                                                                                                                            -->
-
-<!-- # 型の読み方                                                                                                             -->
-
-<!-- ```haskell                                                                                                                     -->
-<!-- -- 関数名 :: 型変数の導入. 型制約 => 引数 -> 戻り値                                                           -->
-<!--    sort  :: forall a  . Ord a => [a]  -> [a]                                                                                   -->
-<!-- ```                                                                                                                            -->
-
-<!-- - 変数は引数のない関数                                                                                               -->
-<!--   ```haskell                                                                                                                   -->
-<!--   one :: Int                                                                                                                   -->
-<!--   ```                                                                                                                          -->
-<!-- - 大文字で始まるのは型コンストラクタ                                                                          -->
-<!--   - 定義された型                                                                                                         -->
-<!--   - 並べて書くとジェネリクスみたいなものの適用: `T a`                                                     -->
-<!--     - 型でパラーメタ化された型                                                                                     -->
-<!--   ```haskell                                                                                                                   -->
-<!--   map :: forall a b. (a -> b) -> Maybe a -> Maybe b                                                                            -->
-<!--   ```                                                                                                                          -->
-
-<!-- ---                                                                                                                            -->
-
-<!-- # 読み方                                                                                                                   -->
-
-<!-- - `case` や定義を並べてパターンマッチ                                                                            -->
-
-<!-- ```haskell                                                                                                                     -->
-<!-- -- １つ目の引数（`[a]` 型）が `[]` だったら e1                                                                   -->
-<!-- sort [] = e1                                                                                                                   -->
-<!-- -- １つ目の引数（`[a]` 型）が `x : xs` だったら e2                                                               -->
-<!-- sort (x:xs) = e2                                                                                                               -->
-<!-- ```                                                                                                                            -->
-
-<!-- ```haskell                                                                                                                     -->
-<!-- -- 上と同じ意味                                                                                                          -->
-<!-- sort xs = case xs of                                                                                                           -->
-<!--   [] -> e1                                                                                                                     -->
-<!--   (x : xs) -> e2                                                                                                               -->
-<!-- ```                                                                                                                            -->
-
-<!-- - 並べると関数適用                                                                                                     -->
-
-<!-- ```haskell                                                                                                                     -->
-<!-- -- `sort` 関数に `bigger` 変数を渡す                                                                                   -->
-<!-- sort bigger                                                                                                                    -->
-<!-- ```                                                                                                                            -->
-
-<!-- ---                                                                                                                            -->
-
 ---
 
 <!-- _class: lead -->
@@ -339,142 +334,238 @@ Add (S Z) m
 - Vytiniotis, Dimitrios, Simon Peyton Jones, Tom Schrijvers, and Martin Sulzmann. "OutsideIn (X) Modular type inference with local assumptions." Journal of functional programming 21, no. 4-5 (2011): 333-412.
   - Simon Peyton Jones は Haskell のすごい人みたいな感じ
 
-<!-- --- -->
+---
 
-<!-- # 型推論の流れ                                                                                                                                      -->
+# 型推論の流れ
 
-<!-- - 制約生成                                                                                                                                             -->
-<!--   - プログラムに型が付くために満たす必要がある制約を集める                                                                      -->
-<!--   - e.g. `id True` $\rightsquigarrow$ `Bool -> u2 ~ u1 -> u1`                                                                                              -->
-<!--     - where `id :: forall a. a -> a`                                                                                                                       -->
-<!-- - 制約解消                                                                                                                                             -->
-<!--   - 制約を満たす型変数への代入を求める                                                                                                    -->
-<!--   - e.g. `Bool -> u2 ~ u1 -> u1` $\rightsquigarrow$ `u1 := Bool, u2 := Bool`                                                                               -->
+- 制約生成
+  - プログラムに型が付くために満たす必要がある制約を集める
+  - e.g. `id True` $\rightsquigarrow (\texttt{Bool} \rightarrow u_2) \sim (u_1 \rightarrow u_1)$
+    - where `id :: forall a. a -> a`
+- 制約解消
+  - 制約を満たす型変数への代入を求める
+  - e.g. $(\texttt{Bool} \rightarrow u_2) \sim (u_1 \rightarrow u_1) \rightsquigarrow u_1 := \texttt{Bool}, u_2 := \texttt{Bool}$
 
-<!-- ---                                                                                                                                                        -->
+---
 
-<!-- # `GADTs` が居ると？                                                                                                                                 -->
+# `GADTs` が居ると？
 
-<!-- ```haskell                                                                                                                                                 -->
-<!-- map :: forall a b n. (a -> b) -> Vec n a -> Vec n b                                                                                                        -->
-<!-- map _ VZ = VZ                                                                                                                                              -->
-<!-- ```                                                                                                                                                        -->
+```haskell
+map :: forall a b n. (a -> b) -> Vec n a -> Vec n b
+map _ VZ = VZ
+map f (VS x xs) = VS (f x) (map f xs)
+```
 
-<!-- - `Vec n a` の引数が `VZ` なので、 `n ~ Z` だとわかる                                                                                         -->
-<!--   - そのため、戻すのは `Vec n b` ではなく `Vec Z b` で良い                                                                                 -->
+- そのままでは `Vec n b` は作れない
+  - `n` がわからない
+- パターンマッチによって得た知識を元に `n` に制約が増えたおかげで `Vec n b` が作れるようになる
+- でもその知識はのマッチの右辺でのみ有効
+- `GADTs` でのパターンマッチでは、**その右辺でのみ有効な型制約**が登場する
 
-<!-- ```haskell                                                                                                                                                 -->
-<!-- map f (VS x xs) = VS (f x) (map f xs)                                                                                                                      -->
-<!-- ```                                                                                                                                                        -->
+---
 
-<!-- - `Vec n a` の引数が `VS x xs` なので、 `n ~ S n'` だとわかる                                                                                 -->
-<!--   - そのため、戻すのは `Vec n b` ではなく `Vec (S n') b` で良い                                                                            -->
-<!--   - ここで `xs :: Vec n' a` なので `map f xs :: Vec n' b`                                                                                            -->
-<!--   - よって右辺が `Vec (S n') b` になり、無事型が付く                                                                                       -->
+# `GADTs` が居ると？
 
-<!-- ---                                                                                                                                                        -->
+```haskell
+map :: forall a b n. (a -> b) -> Vec n a -> Vec n b
+map _ VZ = VZ
+```
 
-<!-- # `GADTs` が居ると？                                                                                                                                 -->
+- `Vec n a` の引数が `VZ` なので、 `n ~ Z` だとわかる
+  - そのため、戻すのは `Vec n b` ではなく `Vec Z b` で良い
 
-<!-- ```haskell                                                                                                                                                 -->
-<!-- map :: forall a b n. (a -> b) -> Vec n a -> Vec n b                                                                                                        -->
-<!-- map _ VZ = VZ                                                                                                                                              -->
-<!-- map f (VS x xs) = VS (f x) (map f xs)                                                                                                                      -->
-<!-- ```                                                                                                                                                        -->
+```haskell
+map f (VS x xs) = VS (f x) (map f xs)
+```
 
-<!-- - そのままでは `Vec n b` は作れない                                                                                                             -->
-<!--   - `n` がわからない                                                                                                                                 -->
-<!-- - パターンマッチによって得た知識を元に `n` に制約が増えたおかげで `Vec n b` が作れるようになる                       -->
-<!-- - でもその知識はのマッチの右辺でのみ有効                                                                                                -->
-<!-- - `GADTs` でのパターンマッチでは、**その右辺でのみ有効な型制約**が登場する                                                   -->
+- `Vec n a` の引数が `VS x xs` なので、 $\exists n'.\ \texttt{n} \sim \texttt{S}\ n'$ だとわかる
+  - そのため、戻すのは `Vec n b` ではなく `Vec (S n') b` で良い
+  - ここで `xs :: Vec n' a` なので `map f xs :: Vec n' b`
+  - よって右辺が `Vec (S n') b` になり、無事型が付く
 
-<!-- ---                                                                                                                                                        -->
+---
 
-<!-- # `GADTs` が居ると？                                                                                                                                 -->
+# `GADTs` が居ると？
 
-<!-- ```haskell                                                                                                                                                 -->
-<!-- map :: forall a b n. (a -> b) -> Vec n a -> Vec n b                                                                                                        -->
-<!-- map _ VZ = VZ                                                                                                                                              -->
-<!-- map f (VS x xs) = VS (f x) (map f xs)                                                                                                                      -->
-<!-- ```                                                                                                                                                        -->
+```haskell
+map :: forall a b n. (a -> b) -> Vec n a -> Vec n b
+map _ VZ = VZ
+map f (VS x xs) = VS (f x) (map f xs)
+```
 
-<!-- - 出てくる制約                                                                                                                                       -->
-<!--   $$                                                                                                                                                       -->
-<!--   (\texttt{n} \sim \texttt{Z} \supset \texttt{Vec}\ \texttt{Z}\ u_1 \sim \texttt{Vec}\ \texttt{n}\ \texttt{b})                                             -->
-<!--     \land (\texttt{n} \sim \texttt{S}\ \texttt{n'} \supset \texttt{Vec}\ (\texttt{S}\ \texttt{n'})\ \texttt{b} \sim \texttt{Vec}\ \texttt{n}\ \texttt{b})  -->
-<!--   $$                                                                                                                                                       -->
-<!--   - $\supset$ でローカルな型制約を表現 (local implication)                                                                                     -->
+- 出てくる制約
+  $$
+  (\texttt{n} \sim \texttt{Z} \supset \texttt{Vec}\ \texttt{Z}\ u_1 \sim \texttt{Vec}\ \texttt{n}\ \texttt{b})
+    \land (\texttt{n} \sim \texttt{S}\ \texttt{n'} \supset \texttt{Vec}\ (\texttt{S}\ \texttt{n'})\ \texttt{b} \sim \texttt{Vec}\ \texttt{n}\ \texttt{b})
+  $$
+  - $\supset$ でローカルな型制約を表現 (**local implication**)
 
-<!-- ---                                                                                                                                                        -->
+---
 
-<!-- # local implicationを含む制約解消                                                                                                                  -->
+# local implication を含む制約解消
 
-<!-- $$                                                                                                                                                         -->
-<!-- u_1 \sim \texttt{Bool} \supset u_2 \sim \texttt{Bool}                                                                                                      -->
-<!-- $$                                                                                                                                                         -->
+$$
+u_1 \sim \texttt{Bool} \supset u_2 \sim \texttt{Bool}
+$$
 
-<!-- - これは $u_2 := \texttt{Bool}$ か $u_2 := u_1$ か？                                                                                                 -->
-<!--   - どっちでもいい？                                                                                                                               -->
-<!--   - $u_1 \to u_2$                                                                                                                                          -->
-<!--     - $u_1 \to \texttt{Bool}$                                                                                                                              -->
-<!--     - $u_1 \to u_1$                                                                                                                                        -->
-<!--     - 違う型が付いてしまう！                                                                                                                    -->
-<!--     - どっちでもよくない                                                                                                                          -->
+- これは $u_2 := \texttt{Bool}$ か $u_2 := u_1$ か？
+  - どっちでもいい？
+  - $u_1 \to u_2$
+    - $u_1 \to \texttt{Bool}$
+    - $u_1 \to u_1$
+    - 違う型が付いてしまう！
+    - どっちでもよくない
 
-<!-- ---                                                                                                                                                        -->
+---
 
-<!-- # local implicationを含む制約解消: 課題                                                                                                          -->
+# local implication を含む制約解消: 課題
 
-<!-- ---                                                                                                                                                        -->
+- implication constraint を含む型推論はたいへん
 
-<!-- # local implicationを含む制約解消: 方針                                                                                                          -->
+TODO
 
-<!-- - OutsideIn(X): GHCのベースになっている、多少アドホックだが実装が簡単なアプローチ                                           -->
-<!--   - Vytiniotis, Dimitrios, et al. "OutsideIn (X) Modular type inference with local assumptions." Journal of functional programming 21.4-5 (2011): 333-412. -->
+---
 
-<!-- - 方針: implication constraint の中では**代入をしない**                                                                                        -->
-<!--   - 例外: implication constraint の右辺で完結している型変数                                                                                 -->
-<!-- - 型推論は弱くなるけれど外側で代入をすればいいので致命的ではない                                                            -->
+# local implication を含む制約解消: 方針
 
-<!-- ---                                                                                                                                                        -->
+- OutsideIn(X)
 
-<!-- # `TypeFamilies` での制約解消                                                                                                                       -->
+  - GHC のベースになっている、多少アドホックだが実装が簡単なアプローチ
 
-<!-- - `TypeFamilies` がいない場合                                                                                                                        -->
-<!--   - $t_1 \sim t_2 \iff$ $t_1$と$t_2$が構文的に同等                                                                                                 -->
-<!--   - e.g. $\texttt{T}\ \texttt{[Int]} \sim \texttt{T}\ \texttt{Bool} \not\rightsquigarrow$                                                                  -->
-<!-- - `TypeFamilies` が居ると                                                                                                                              -->
-<!--   - $t_1 \sim t_2 \iff$ $t_1$と$t_2$を型族の定義によって変形した結果が構文的に同等                                                 -->
-<!--   - e.g. $\texttt{F}\ \texttt{[Int]} \sim \texttt{F}\ \texttt{Bool} \rightsquigarrow \epsilon$                                                             -->
-<!--     ```haskell                                                                                                                                             -->
-<!--     type family F a where                                                                                                                                  -->
-<!--       F [x] = F x                                                                                                                                          -->
-<!--       F Int = Bool                                                                                                                                         -->
-<!--       F Bool = Bool                                                                                                                                        -->
-<!--     ```                                                                                                                                                    -->
-<!-- ---                                                                                                                                                        -->
+- 方針: implication constraint の中では**代入をしない**
+  - 例外: implication constraint の右辺で完結している型変数
+- 型推論は弱くなるけれど外側で代入をすればいいので致命的ではない
 
-<!-- # `TypeFamilies` での制約解消                                                                                                                       -->
+---
 
-<!-- - やみくもにやっていいわけではない                                                                                                         -->
-<!-- - $\texttt{a} \sim [\texttt{F}\ \texttt{a}] \supset \texttt{G}\ \texttt{a} \sim \texttt{Bool}$                                                             -->
-<!--   ```haskell                                                                                                                                               -->
-<!--   type family G a where                                                                                                                                    -->
-<!--     G [x] = Bool                                                                                                                                           -->
-<!--   ```                                                                                                                                                      -->
-<!-- - $\texttt{G}\ [\texttt{F}\ \texttt{a}] \sim \texttt{Bool}$                                                                                                -->
-<!--   - NG: $\texttt{G}\ [\texttt{F}\ [\texttt{F}\ \texttt{a}]] \sim \texttt{Bool}$                                                                            -->
-<!--       - 止まらない                                                                                                                                    -->
-<!--   - OK: $\texttt{Bool} \sim \texttt{Bool}$                                                                                                                 -->
-<!--       - `G [x] = Bool` より                                                                                                                              -->
+# `TypeFamilies` での制約解消
 
-<!-- ---                                                                                                                                                        -->
+- `TypeFamilies` がいない場合
+  - $t_1 \sim t_2 \iff$ $t_1$と$t_2$が構文的に同等
+  - e.g. $\texttt{T}\ \texttt{[Int]} \sim \texttt{T}\ \texttt{Bool} \not\rightsquigarrow$
+- `TypeFamilies` が居ると
+  - $t_1 \sim t_2 \iff$ $t_1$と$t_2$を型族の定義によって変形した結果が構文的に同等
+  - e.g. $\texttt{F}\ \texttt{[Int]} \sim \texttt{F}\ \texttt{Bool} \rightsquigarrow \epsilon$
+    ```haskell
+    type family F a where
+      F [x] = F x
+      F Int = Bool
+      F Bool = Bool
+    ```
 
-<!-- # `TypeFamilies` での制約解消: 課題                                                                                                               -->
+---
 
-<!-- ---                                                                                                                                                        -->
+# `TypeFamilies` での制約解消
 
-<!-- # `TypeFamilies` での制約解消: 方針                                                                                                               -->
+- やみくもにやっていいわけではない
+- $\texttt{a} \sim [\texttt{F}\ \texttt{a}] \supset \texttt{G}\ \texttt{a} \sim \texttt{Bool}$
+  ```haskell
+  type family G a where
+    G [x] = Bool
+  ```
+- $\texttt{G}\ [\texttt{F}\ \texttt{a}] \sim \texttt{Bool}$
+  - NG: $\texttt{G}\[\texttt{F}\ [\texttt{F}\ \texttt{a}]]\sim \texttt{Bool}$
+    - 止まらない
+  - OK: $\texttt{Bool} \sim \texttt{Bool}$
+    - `G [x] = Bool` より
+
+---
+
+# `TypeFamilies` での制約解消: 課題
+
+- termination
+  - インスタンス宣言に対する最低限の制約で制約解消が停止するようにしたい
+
+---
+
+# `TypeFamilies` での制約解消: 方針
+
+TODO
+
+---
+
+# Evidence 生成: 制約生成
+
+```haskell
+axiom ∀a. <F a> ~ a
+
+let f :: ∀a. <F a> -> a
+  = \x. x
+```
+
+```haskell
+axiom $F_a = ∀a. <F a> ~ a
+
+let f :: ∀a. <F a> -> a
+  = Λa. (\(x :: 'u0). x) ▷ %c1
+```
+
+```ocaml
+%c1: ('u0 -> 'u0) ~ (<F a> -> a)
+```
+
+---
+
+# Evidence 生成: 制約解消
+
+```ocaml
+%c1: ('u0 -> 'u0) ~ (<F a> -> a)
+(%c2: 'u0 ~ <F a>) ∧ (%c3: 'u0 ~ a)    (CANW) %c1 = (->) %c2 %c3
+(%c4: <F a> ~ 'u0) ∧ (%c3: 'u0 ~ a)    (CANW) %c2 = sym %c4
+(%c5: a ~ 'u0) ∧ (%c3: 'u0 ~ a)        (TOPG) %c4 = $F_a @a ∘ %c5
+(%c6: 'u0 ~ a) ∧ (%c3: 'u0 ~ a)        (CANW) %c5 = sym %c6
+(%c6: 'u0 ~ a) ∧ (%c7: a ~ a)          (INTW) %c3 = %c6 ∘ %c7
+(%c6: 'u0 ~ a)                         (CANW) %c7 = <a>
+
+θ: 'u0 ↦ a                                    %c6 = <a>
+```
+
+---
+
+# Evidence 生成: 置換
+
+```ocaml
+%c1 = (->) %c2 %c3
+%c2 = sym %c4
+%c4 = $F_a @a ∘ %c5
+%c5 = sym %c6
+%c3 = %c6 ∘ %c7
+%c7 = <a>
+%c6 = <a>
+'u0 ↦ a
+```
+
+```haskell
+axiom $F_a = ∀a. <F a> ~ a
+
+let f :: ∀a. <F a> -> a
+  = Λa. (\(x :: 'u0). x) ▷ %c1
+```
+
+```haskell
+let f :: ∀a. <F a> -> a
+  = Λa. (\(x :: a). x) ▷ (->) (sym ($F_a @a ∘ (sym <a>))) (<a> ∘ <a>)
+```
+
+---
+
+# Evidence 生成: 単純化
+
+- `sym <t>` = `<t>`
+- `T <t1> <t2> ..` = `<T t1 t2 ..>`
+- `c ∘ <t2>` = `c`
+  - where `c :: t1 ~ t2`
+- とか
+
+```haskell
+let f :: ∀a. <F a> -> a
+  = Λa. (\(x :: a). x) ▷ (->) (sym ($F_a @a ∘ (sym <a>))) (<a> ∘ <a>)
+```
+
+```haskell
+let f :: ∀a. <F a> -> a
+  = Λa. (\(x :: a). x) ▷ (->) (sym ($F_a @a)) <a>
+```
 
 ---
 
@@ -499,6 +590,7 @@ Add (S Z) m
 ```haskell
 axiom $a1 = ∀m. <Add Z m> ~ m
 axiom $a0 = ∀n m. <Add (S n) m> ~ S <Add n m>
+
 let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
   Λn. Λm. λ(n :: SNat n). λ(m :: SNat m).
     case n → Eq <Add n m> <Add m n> {
@@ -518,26 +610,46 @@ let plusComm :: ∀n. ∀m. SNat n → SNat m → Eq <Add n m> <Add m n> =
     }
 ```
 
-<!-- --- -->
+---
 
-<!-- # 実装のおもしろポイント                                            -->
+<!-- _footer: 型と coercion は消せるが型クラス制約は引数になるの、セマンティクスに影響するものがはっきりする感じがしてよくないですか -->
 
-<!-- - OutsideIn(X) と言っているくらいだから X はなんでもあり     -->
-<!--   - なので、型推論器は X から独立して実装している          -->
+# 型クラスも居るよ
 
-<!-- ```haskell                                                                      -->
-<!-- typeProgram ::                                                                  -->
-<!--   forall x m.                                                                   -->
-<!--   ( ConstraintDomain x,                                                         -->
-<!--     MonadLogger m,                                                              -->
-<!--     MonadError (TypeError x) m                                                  -->
-<!--   ) =>                                                                          -->
-<!--   Program x ->                                                                  -->
-<!--   m ()                                                                          -->
-<!-- ```                                                                             -->
+```haskell
+data Pair :: ∀a b. ∃. ∃. a → b → Pair a b
 
-<!-- - 外から `typeProgram @TypeClass` みたいに X を埋めて使える       -->
-<!--   - 論文をそっくりそのまま実装できた感じがあって嬉しい -->
+type $d0 :: ∀a. ∀b. {Show} a → {Show} b → {Show} (Pair a b)
+type $d1 :: {Show} Bool
+
+type show :: ∀a. {Show} a → a → String
+type parens :: String → String
+
+let parensShow :: ∀a. {Show} a → a → String =
+  Λa. λ('x20 :: {Show} a). λ(x :: a).
+    parens (show @a 'x20 x)
+```
+
+---
+
+# 実装のおもしろポイント
+
+- OutsideIn(X) と言っているくらいだから X はなんでもあり
+  - なので、型推論器は X から独立して実装している
+
+```haskell
+typeProgram ::
+  forall x m.
+  ( ConstraintDomain x,
+    MonadLogger m,
+    MonadError (TypeError x) m
+  ) =>
+  Program x ->
+  m ()
+```
+
+- 外から `typeProgram @TypeClass` みたいに X を埋めて使える
+  - 論文をそっくりそのまま実装できた感じがあって嬉しい
 
 ---
 
