@@ -1,4 +1,4 @@
-# Haskell 言語拡張における型推論の追実装
+# OutsideIn(X) 型推論
 
 [![Lint](https://github.com/coord-e/slide-coins20lt-outsidein-type-inference/workflows/Lint/badge.svg)](https://github.com/coord-e/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/actions?workflow=Lint)
 [![Deploy](https://github.com/coord-e/slide-coins20lt-outsidein-type-inference/workflows/Deploy/badge.svg)](https://github.com/coord-e/slide-specialseminar20-reimpl-type-infer-in-haskell-exts/actions?workflow=Deploy)

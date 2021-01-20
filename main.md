@@ -6,13 +6,9 @@ paginate: true
 <!-- _paginate: false -->
 <!-- _class: title -->
 
-# Haskell 言語拡張における型推論の追実装
+# OutsideIn(X) 型推論
 
----
-
-# 目的
-
-定理証明などの幅広い応用がある Haskell 言語拡張を追実装することで理解を深める
+もしくはジュオットク２
 
 ---
 
@@ -117,10 +113,6 @@ add [1,2,3] [1,1,1,1]
 
 # Lightweight dependent type
 
-<!-- - 値に依存した index: GADTs -->
-<!-- - index として十分な表現力を持った型レベル言語: TypeFamilies -->
-<!-- - 型は拡張可能でありながら良い性質を持っているのでindexとして都合がいい -->
-
 2 つの引数が同じ長さ `n` であることを**型の上で表現**
 
 ```haskell
@@ -186,9 +178,6 @@ case proof of
 - 定理証明: Curry-Howard 同型対応
 - 半自動: 型推論によって推移律や対称律などによる書き換えは自動で推論
   - ↓ のように必要な定理と帰納法の仮定を並べてやれば証明できちゃったり
-    <!-- - index を項レベルで扱うための singleton type: GADTs -->
-    <!-- - 同値性を反映する identity type: GADTs -->
-    <!-- - 証明したい事柄を表現できる index: TypeFamilies -->
 
 ```haskell
 plusComm :: SNat n -> SNat m -> Add n m :~: Add m n
@@ -301,6 +290,22 @@ Add (S Z) m
 
 この二つの拡張機能を含めた型推論で実現できる
 → 実装したい！（理論と実装に興味が出る）
+
+---
+
+# Lightweight dependent type
+
+- 値に依存した index: `GADTs`
+- index として十分な表現力を持った型レベル言語: `TypeFamilies`
+- 型は拡張可能でありながら良い性質を持っているので index として都合がいい
+
+---
+
+# 半自動定理証明
+
+- index を項レベルで扱うための singleton type: `GADTs`
+- 同値性を反映する identity type: `GADTs`
+- 証明したい事柄を表現できる index: `TypeFamilies`
 
 ---
 
@@ -421,8 +426,9 @@ $$
 # local implication を含む制約解消: 課題
 
 - implication constraint を含む型推論はたいへん
-
-TODO
+  - なんで具体的に大変なのかあんまりわかってない
+  - GADT 一般の型推論に詳しくない
+  - 調べる
 
 ---
 
@@ -457,6 +463,8 @@ TODO
 
 # `TypeFamilies` での制約解消
 
+<!-- textlint-disable ja-spacing/ja-no-space-around-parentheses -->
+
 - やみくもにやっていいわけではない
 - $\texttt{a} \sim [\texttt{F}\ \texttt{a}] \supset \texttt{G}\ \texttt{a} \sim \texttt{Bool}$
   ```haskell
@@ -464,10 +472,12 @@ TODO
     G [x] = Bool
   ```
 - $\texttt{G}\ [\texttt{F}\ \texttt{a}] \sim \texttt{Bool}$
-  - NG: $\texttt{G}\[\texttt{F}\ [\texttt{F}\ \texttt{a}]]\sim \texttt{Bool}$
+  - NG: $\texttt{G}\ [\texttt{F}\ [\texttt{F}\ \texttt{a}]]\sim \texttt{Bool}$
     - 止まらない
   - OK: $\texttt{Bool} \sim \texttt{Bool}$
     - `G [x] = Bool` より
+
+<!-- textlint-enable ja-spacing/ja-no-space-around-parentheses -->
 
 ---
 
@@ -480,7 +490,48 @@ TODO
 
 # `TypeFamilies` での制約解消: 方針
 
-TODO
+- まず正規形にする
+  - $\texttt{F}\ \overline{\xi_1} \sim \xi_2$
+  - $\textit{tv} \sim \xi$
+  - $\texttt{C}\ \overline{\xi}$
+- 正規形にする段階で型族が分解される
+  - $\texttt{a} \sim [\texttt{F}\ \texttt{a}] \rightsquigarrow (\texttt{a} \sim [u_1]) \land (u_1 \sim \texttt{F}\ \texttt{a})$
+  - → 型族以外で型変数の代入をして、型族にはやらない
+- ほんで解く
+
+---
+
+<!-- _footer: System F で検索するとオランダの DJ がでてくる -->
+
+# Evidence 生成
+
+- 型推論結果を型が明示的についた中間言語 $F_C$ に変換
+- System F
+  - 単純型付きラムダ計算 + 多相型
+  - type-lambda: `Λa. e` :: `∀a. t` given `e :: t`
+- C
+  - Coercion
+  - cast: `e ▷ c` :: `t2` given `c :: t1 ~ t2` and `e :: t1`
+- 推論せずに高速な型チェック
+  - 信頼すべき場所がこのチェッカまで小さくなる
+
+---
+
+# Evidence 生成: 例
+
+```haskell
+axiom ∀a. <F a> ~ a
+
+let f :: ∀a. <F a> -> a
+  = \x. x
+```
+
+```haskell
+axiom $F_a = ∀a. <F a> ~ a
+
+let f :: ∀a. <F a> -> a
+  = Λa. \(x :: <F a>). x ▷ $F_a @a
+```
 
 ---
 
